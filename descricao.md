@@ -27,3 +27,13 @@ A questão que não foi abordada é o mecanismo de buscar o próximo bloco livre
 - o primeiro indica se o bloco está livre (igual a 0) ou se está ocupado (igual a 1);
 - o segundo indica o tamanho do bloco. Também é usado para determinar o endereço do próximo nó da lista.
 - o terceiro é o bloco alocado (o primeiro endereço é retornado por `alocaMem()`).
+
+# (6.2) Variações
+   Esta parte do trabalho é cita outros modos de alocamento de memória diferentes do algorítmo da Seção 6.1.2, neste período será implementado as variações 6.2-a e 6.2-e (first fit).
+
+   - a) faça a fusão de nós livres;
+   
+   - e) escreva variações do algoritmo de escolha dos nós livres:
+      - `first fit`: percorre a lista do início e escolhe o primeiro nó com tamanho maior ou igual ao solicitado;
+
+# (6.4) Impressão da memória
