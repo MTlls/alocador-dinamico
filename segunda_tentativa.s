@@ -1,6 +1,7 @@
 .section .data
     INICIO_HEAP: .quad 0            # ptr começo da heap
     TOPO_HEAP: .quad 0              # ptr final da heap
+    META: .string "################"      # string de metadados
 .section .text
 
 .globl iniciaAlocador
@@ -166,61 +167,25 @@ fusiona_livres:
     popq %rbp
     ret
 
--- imprime_heap:
---     pushq %rbp
---     movq %rsp, %rbp
-
---     movq INICIO_HEAP, %rax          # começo da heap em %rax
---     movq TOPO_HEAP, %rdx            # topo da heap em %rdx
-
---     movq $16, %rcx
---     movq $35, %rdi
---     loop_metadados:
---         cmpq $0, %rcx
---         je loop_impressao           # sai do primeiro loop para o proximo
---         call imprime_caractere
---         jmp loop_metadados
-        
---     loop_impressao:
---         cmpq %rax, %rdx             # compara o valor atual da heap com o topo
---         je saida_laco
-        
---         movq 8(%rax), %rsi          # tamanho do bloco
---         movq (%rax), %rdi           # condição do bloco
-
---         jmp imprime_sequencia       # imprime_sequencia(%rdi, %rsi)
-
---         addq $1, %rax
---         jmp loop_impressao          # imprime o proximo valor
+imprime_heap:
+    pushq %rbp
+    movq %rsp, %rbp
     
---     saida_laco:
---     popq %rbp
---     ret
+    subq 16, %rsp                   # ponteiros (cursor, fim)
+    subq 8, %rsp                    # long long (tamanho)
+    subq 17, %rsp                   # (metadados[16], flag_valido)
 
--- imprime_caractere:
---     pushq %rbp
---     movq %rsp, %rbp
+    movq INICIO_HEAP, 8(%rbp)       # cursor
+    movq TOPO_HEAP, 16(%rbp)        # fim
+    movq $0, $24(%rbp)              # tamanho
+    movq $META, 32(%rbp)            # string meta, constante 
+    mov  $0, 48(%rbp)               # (char) flag_valido = 0
+
+    loop_imprime
+    cmpq 8(%rbp), 16(%rbp) 
+    je fim_loop:
+
     
---     movq $1, %rax                   # servico write
---     movq %rdi, %rsi                 # caractere odo buffer
---     movq %rax, %rdi                 # descritor (stdout)
---     movq $rdi, %rdx                 # tamanho do buffer
---     syscall
-
---     popq %rbp
---     ret
-
--- imprime_sequencia:
---     pushq %rbp
---     movq %rsp, %rbp
-    
---     cmpq $1, %rdi                   # verifica a condição do bloco
---     jne livre                       # jmp para o rotulo   
-    
---     movq $43, %rsi                  # ASCII de "+"
-
---     livre:
---         movq $45, %rsi              # ASCII de "-"
-
---     popq %rbp
---     ret
+    addq 41, %rsp                   # apaga todos os locais
+    popq %rbp
+    ret
