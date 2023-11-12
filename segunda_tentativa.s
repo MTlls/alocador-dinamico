@@ -65,7 +65,7 @@ alocaMem:                           # %rdi = num_bytes
 loop_first_fit:                 # endereço do bloco atual = %rax
     movq 8(%rax), %rsi          # espaço do bloco atual = %rsi
     cmpq %rsi, %rdi             # verifica se num_bytes <= %rsi
-    jle achou_bloco             # se sim, achou o bloco
+    jle verifica_livre          # se sim, verifica se esta livre
 
     pushq %rdi                  # método caller
     movq %rax, %rdi             # mudando os parametros para a chamda de função
@@ -77,6 +77,7 @@ loop_first_fit:                 # endereço do bloco atual = %rax
     jge abre_espaco             # abre espaco para alocação
     jmp loop_first_fit          # se não, verifica novamente para mais um bloco
 
+    verifica_livre:
     cmpq $1, (%rax)             # verifica se a area está livre
     jne achou_bloco             # se estiver, aloca-se o bloco
     movq %rax, %rdi
@@ -208,14 +209,17 @@ imprime_heap:
     loop_data:
     cmpq %r9, %r12                  # contador == tamanho do bloco
     je fim_loop
+    movq $1, %rdi                   # 1 = stdout
+    movq $1, %rax                   # 1 = serviço write
     syscall
     addq $1, %r12                   # contador++
     jmp loop_data
 
     fim_loop:
-    imul $8, %r9
-    addq $8, %r9                   
-    movq %r9, %r8                   # %r8 = prox bloco (deveria ser flag de ocupacao)
+    addq $8, %r8
+    movq %r8, %rdi
+    call proximo_bloco
+    movq %rax,%r8                      # %r8 = prox bloco (deveria ser flag de ocupacao)
     jmp heap_loop
 
     fim_heap:
