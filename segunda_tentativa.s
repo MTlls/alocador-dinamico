@@ -2,6 +2,8 @@
     INICIO_HEAP: .quad 0            # ptr começo da heap
     TOPO_HEAP: .quad 0              # ptr final da heap
     META: .string "################"      # string de metadados
+    OCUPADO: .string "+"
+    DESOCUPADO: .string "-"
 .section .text
 
 .globl iniciaAlocador
@@ -11,6 +13,7 @@
 .globl getBrk
 .globl fusiona_livres
 .globl proximo_bloco
+.globl imprime_heap
 
 iniciaAlocador:
     pushq %rbp
@@ -35,10 +38,11 @@ alocaMem:                           # %rdi = num_bytes
     verifica_fim:
         cmpq %rax, %rsi             # compara o inicio com o fim da heap
         jne loop_first_fit          # vai procurar um bloco livre.
-    
+        
     abre_espaco:
         pushq %rdi                  # empilha o tamanho do bloco
         movq $12, %rax              # 12 = serviço brk
+        movq (%rsp), %rdi             # arg1 = topo da pilha
         addq $16, %rdi              # num_bytes += 2 long ints
         addq TOPO_HEAP, %rdi        # TOPO_HEAP += num_bytes
         movq %rdi, TOPO_HEAP        # endereço novo do topo da heap
@@ -62,7 +66,7 @@ alocaMem:                           # %rdi = num_bytes
 loop_first_fit:                 # endereço do bloco atual = %rax
     movq 8(%rax), %rsi          # espaço do bloco atual = %rsi
     cmpq %rsi, %rdi             # verifica se num_bytes <= %rsi
-    jle achou_bloco             # se sim, achou o bloco
+    jle verifica_livre          # se sim, verifica se esta livre
 
     pushq %rdi                  # método caller
     movq %rax, %rdi             # mudando os parametros para a chamda de função
@@ -74,6 +78,7 @@ loop_first_fit:                 # endereço do bloco atual = %rax
     jge abre_espaco             # abre espaco para alocação
     jmp loop_first_fit          # se não, verifica novamente para mais um bloco
 
+    verifica_livre:
     cmpq $1, (%rax)             # verifica se a area está livre
     jne achou_bloco             # se estiver, aloca-se o bloco
     movq %rax, %rdi
@@ -170,22 +175,56 @@ fusiona_livres:
 imprime_heap:
     pushq %rbp
     movq %rsp, %rbp
-    
-    subq 16, %rsp                   # ponteiros (cursor, fim)
-    subq 8, %rsp                    # long long (tamanho)
-    subq 17, %rsp                   # (metadados[16], flag_valido)
+    subq $16, %rsp     
 
-    movq INICIO_HEAP, 8(%rbp)       # cursor
-    movq TOPO_HEAP, 16(%rbp)        # fim
-    movq $0, $24(%rbp)              # tamanho
-    movq $META, 32(%rbp)            # string meta, constante 
-    mov  $0, 48(%rbp)               # (char) flag_valido = 0
+    movq INICIO_HEAP, %r8           # inicio da heap = %r8
+    movq %r8, -8(%rbp)              # guarda o inicio da heap
+    movq TOPO_HEAP, %rcx
+    movq %rcx, -16(%rbp)            # guarda o topo da heap
 
-    loop_imprime
-    cmpq 8(%rbp), 16(%rbp) 
-    je fim_loop:
+    heap_loop:
+    movq -16(%rbp), %rcx            # topo da heap = %rcx
+    cmpq %r8, %rcx                  # cursor != topo da heap
+    je fim_heap
 
-    
-    addq 41, %rsp                   # apaga todos os locais
+    # imprime_gerencial:    
+    movq $1, %rax                   # 1 = serviço write
+    movq $1, %rdi                   # 1 = stdout
+    movq $META, %rsi                # METADADOS to buffer
+    movq $16, %rdx                  # 16 = tamanho do buffer
+    syscall                         # imprime ################
+
+    movq $1, %rdx                   # 1 = tamanho do buffer
+    movq (%r8), %r10                # %r10 = flag de ocupacao
+    movq $OCUPADO, %r11             # flag = OCUPADO (+)
+    cmpq $1, %r10                   
+    je tam_data
+    movq $DESOCUPADO, %r11          # flag = OCUPADO (-)
+
+    tam_data:
+    movq %r11, %rsi                 # %rsi = endereco da flag 
+    addq $8, %r8                    # pula para o tamanho do bloco
+    movq (%r8), %r9                 # %r9 = tamanho do bloco
+    movq $0, %r12                   # %r12 = 0 (vai ser o contador)
+
+    loop_data:
+    cmpq %r9, %r12                  # contador == tamanho do bloco
+    je fim_loop
+    movq $1, %rdi                   # 1 = stdout
+    movq $1, %rax                   # 1 = serviço write
+    syscall
+    addq $1, %r12                   # contador++
+    jmp loop_data
+
+    fim_loop:
+    addq $8, %r8
+    movq %r8, %rdi
+    call proximo_bloco
+    movq %rax,%r8                      # %r8 = prox bloco (deveria ser flag de ocupacao)
+    jmp heap_loop
+
+    fim_heap:
     popq %rbp
+    addq $16, %rsp                  # fecha stack
     ret
+    
