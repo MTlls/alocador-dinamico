@@ -6,16 +6,16 @@ PROGRAM = chamador
 
 all: $(PROGRAM)
 
-$(PROGRAM): segunda_tentativa.o chamador.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROGRAM) segunda_tentativa.o chamador.o
+$(PROGRAM): gerenciador_memoria.o chamador.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROGRAM) gerenciador_memoria.o chamador.o
 
-segunda_tentativa.o: segunda_tentativa.s
-	$(AS) -o segunda_tentativa.o segunda_tentativa.s
+gerenciador_memoria.o: gerenciador_memoria.s
+	$(AS) -o gerenciador_memoria.o gerenciador_memoria.s
 
-chamador.o: chamador.c segunda_tentativa.h
+chamador.o: chamador.c gerenciador_memoria.h
 	$(CC) $(CFLAGS) -c -o chamador.o chamador.c
 
 clean:
-	rm -f $(PROGRAM) segunda_tentativa.o chamador.o
+	rm -f $(PROGRAM) gerenciador_memoria.o chamador.o
 
 .PHONY: all clean
