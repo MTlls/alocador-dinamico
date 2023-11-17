@@ -72,7 +72,7 @@ void fusiona_livres() {
 	// -16 pois precisamos dos metadados
 	prox_bloco = proximo_bloco(cursor + 16) - 16;
 
-	while(cursor <= topo_heap_local) {
+	while(prox_bloco < topo_heap_local) {
 		// caso os dois estejam livres...
 		if((*(long int *)cursor == 0) && (*(long int *)prox_bloco == 0)) {
 			// cursor e prox_bloco vai para area de tamanho

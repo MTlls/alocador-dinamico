@@ -30,9 +30,9 @@ finaliza_alocador:
     pushq %rbp                      
     movq %rsp, %rbp
 
-    movq $12, %rax                  # serviço brk
     movq INICIO_HEAP, %rax
-    movq %rax,  %rdi          # seta %rdi para o inicio da heap
+    movq %rax,  %rdi                # seta %rdi para o inicio da heap
+    movq $12, %rax                  # serviço brk
     syscall                         # seta brk para o inicio da heap
     
     popq %rbp
@@ -95,20 +95,21 @@ fusiona_livres:
     movq %rax, -24(%rbp)            # para as variaveis locais.
 
     movq -8(%rbp), %rsi             # cursor em %rsi
-    movq -16(%rbp), %rdx            # topo_heap em %rdx
 
     # %rax = prox_bloco
     # %rsi = cursor
     # %rdi = topo_heap_local
     loop_ate_fim_heap1:
-        cmpq %rcx, %rsi             # verifica se cursor > ao topo
-        jg fim_fusao                # se sim, vai sai do loop
+        movq -16(%rbp), %rdx        # topo_heap em %rdx
+        movq -8(%rbp), %rsi
+        cmpq %rdx, %rax             # verifica se prox_bloco > topo
+        jge fim_fusao                # se sim, vai sai do loop
 
-        cmpq $0, (%rdx)             # verifica se está livre 
-        jne fim_loop              # se nao, executa o final do loop
+        cmpq $0, (%rsi)             # verifica se está livre 
+        jne fim_loop_heap1          # se nao, executa o final do loop
         
         cmpq $0, (%rax)             # verifica se o proximo bloco está livre
-        jne fim_loop              # se nao, executa o final do loop
+        jne fim_loop_heap1          # se nao, executa o final do loop
 
         addq $8, %rsi               # cursor += 8
         addq $8, %rax               # prox_bloco += 8
@@ -128,7 +129,8 @@ fusiona_livres:
         jmp fim_loop_heap1
 
     fim_loop_heap1:
-        movq %rax, %rsi         # cursor = prox_bloco
+        movq -24(%rbp), %rax
+        movq %rax, -8(%rbp)               # cursor = prox_bloco
 
         # prox_bloco = proximo_bloco(prox_bloco + 16) - 16;
         addq $16, %rax
@@ -136,6 +138,7 @@ fusiona_livres:
         call proximo_bloco
         subq $16, %rax
 
+        movq %rax, -24(%rbp)          # voltando para as variaveis locais
         jmp loop_ate_fim_heap1        # volta ao começo do loop
 
     fim_fusao:
@@ -310,3 +313,60 @@ abre_espaco:
     addq $16, %rsp                  # limpa as duas variaveis locais
     popq %rbp
     ret
+
+imprime_heap:
+    pushq %rbp
+    movq %rsp, %rbp
+    subq $16, %rsp     
+
+    movq INICIO_HEAP, %r8           # inicio da heap = %r8
+    movq %r8, -8(%rbp)              # guarda o inicio da heap
+    movq TOPO_HEAP, %rcx
+    movq %rcx, -16(%rbp)            # guarda o topo da heap
+
+    heap_loop:
+    movq -16(%rbp), %rcx            # topo da heap = %rcx
+    cmpq %r8, %rcx                  # cursor != topo da heap
+    je fim_heap
+
+    # imprime_gerencial:    
+    movq $1, %rax                   # 1 = serviço write
+    movq $1, %rdi                   # 1 = stdout
+    movq $META, %rsi                # METADADOS to buffer
+    movq $16, %rdx                  # 16 = tamanho do buffer
+    syscall                         # imprime ################
+
+    movq $1, %rdx                   # 1 = tamanho do buffer
+    movq (%r8), %r10                # %r10 = flag de ocupacao
+    movq $OCUPADO, %r11             # flag = OCUPADO (+)
+    cmpq $1, %r10                   
+    je tam_data
+    movq $DESOCUPADO, %r11          # flag = OCUPADO (-)
+
+    tam_data:
+    movq %r11, %rsi                 # %rsi = endereco da flag 
+    addq $8, %r8                    # pula para o tamanho do bloco
+    movq (%r8), %r9                 # %r9 = tamanho do bloco
+    movq $0, %r12                   # %r12 = 0 (vai ser o contador)
+
+    loop_data:
+    cmpq %r9, %r12                  # contador == tamanho do bloco
+    je fim_loop
+    movq $1, %rdi                   # 1 = stdout
+    movq $1, %rax                   # 1 = serviço write
+    syscall
+    addq $1, %r12                   # contador++
+    jmp loop_data
+
+    fim_loop:
+    addq $8, %r8
+    movq %r8, %rdi
+    call proximo_bloco
+    movq %rax,%r8                      # %r8 = prox bloco (deveria ser flag de ocupacao)
+    jmp heap_loop
+
+    fim_heap:
+    addq $16, %rsp                  # fecha stack
+    popq %rbp
+    ret
+    

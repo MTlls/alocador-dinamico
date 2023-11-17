@@ -38,11 +38,10 @@ alocaMem:                           # %rdi = num_bytes
     verifica_fim:
         cmpq %rax, %rsi             # compara o inicio com o fim da heap
         jne loop_first_fit          # vai procurar um bloco livre.
-        
+    
     abre_espaco:
         pushq %rdi                  # empilha o tamanho do bloco
         movq $12, %rax              # 12 = serviço brk
-        movq (%rsp), %rdi             # arg1 = topo da pilha
         addq $16, %rdi              # num_bytes += 2 long ints
         addq TOPO_HEAP, %rdi        # TOPO_HEAP += num_bytes
         movq %rdi, TOPO_HEAP        # endereço novo do topo da heap
@@ -66,7 +65,7 @@ alocaMem:                           # %rdi = num_bytes
 loop_first_fit:                 # endereço do bloco atual = %rax
     movq 8(%rax), %rsi          # espaço do bloco atual = %rsi
     cmpq %rsi, %rdi             # verifica se num_bytes <= %rsi
-    jle verifica_livre          # se sim, verifica se esta livre
+    jle achou_bloco             # se sim, achou o bloco
 
     pushq %rdi                  # método caller
     movq %rax, %rdi             # mudando os parametros para a chamda de função
@@ -78,7 +77,6 @@ loop_first_fit:                 # endereço do bloco atual = %rax
     jge abre_espaco             # abre espaco para alocação
     jmp loop_first_fit          # se não, verifica novamente para mais um bloco
 
-    verifica_livre:
     cmpq $1, (%rax)             # verifica se a area está livre
     jne achou_bloco             # se estiver, aloca-se o bloco
     movq %rax, %rdi
@@ -210,21 +208,17 @@ imprime_heap:
     loop_data:
     cmpq %r9, %r12                  # contador == tamanho do bloco
     je fim_loop
-    movq $1, %rdi                   # 1 = stdout
-    movq $1, %rax                   # 1 = serviço write
     syscall
     addq $1, %r12                   # contador++
     jmp loop_data
 
     fim_loop:
-    addq $8, %r8
-    movq %r8, %rdi
-    call proximo_bloco
-    movq %rax,%r8                      # %r8 = prox bloco (deveria ser flag de ocupacao)
+    imul $8, %r9
+    addq $8, %r9                   
+    movq %r9, %r8                   # %r8 = prox bloco (deveria ser flag de ocupacao)
     jmp heap_loop
 
     fim_heap:
     popq %rbp
     addq $16, %rsp                  # fecha stack
     ret
-    

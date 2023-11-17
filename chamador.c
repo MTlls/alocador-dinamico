@@ -1,17 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "segunda_tentativa.h"
+#include "gerenciador_memoria.h"
 
 int main() {
     void *ptr1, *ptr2, *ptr3;
     printf("iniciando alocador\n");
-    iniciaAlocador();
+    inicia_alocador();
     printf("heap vazia\n");
-    printf("valor da brk: %p\n", (void*)(getBrk()));
+    printf("valor da brk: %p\n", (void*)(get_brk()));
     imprime_heap();
-    ptr1 = alocaMem(100 * 1);
-    /* 
+    ptr1 = aloca_mem(100 * 1);
+    
     printf("\n");
     printf("uma alocada\n");
     // imprime_heap();
@@ -19,29 +19,29 @@ int main() {
     printf("\n");
     printf("tam = %d, ptr = %p\n", 100, ptr1);
 
-    printf("valor da brk: %p\n", (void*)(getBrk()));
-    ptr2 = alocaMem(100 * 2);
+    printf("valor da brk: %p\n", (void*)(get_brk()));
+    ptr2 = aloca_mem(100 * 2);
     // imprime_heap();
     printf("\n");
     printf("tam = %d, ptr = %p\n", 200, ptr2);
 
-    printf("valor da brk: %p\n", (void*)(getBrk()));
-    ptr3 = alocaMem(100 * 3);
+    printf("valor da brk: %p\n", (void*)(get_brk()));
+    ptr3 = aloca_mem(100 * 3);
     // imprime_heap();
     printf("\n");
     printf("tam = %d, ptr = %p\n", 300, ptr3);
 
-    liberaMem(ptr1);
+    libera_mem(ptr1);
     // imprime_heap();
     printf("\n");
-    liberaMem(ptr2);
+    libera_mem(ptr2);
     // imprime_heap();
     printf("\n");
-    ptr1 = alocaMem(100);
+    ptr1 = aloca_mem(100);
     // imprime_heap();
     printf("\n");
-    printf("valor da brk: %p\n", (void*)(getBrk()));
- */
-    finalizaAlocador();
+    printf("valor da brk: %p\n", (void*)(get_brk()));
+ 
+    finaliza_alocador();
     return 0;
 }
