@@ -10,10 +10,10 @@ $(PROGRAM): gerenciador_memoria.o chamador.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROGRAM) gerenciador_memoria.o chamador.o
 
 gerenciador_memoria.o: gerenciador_memoria.s
-	$(AS) -o gerenciador_memoria.o gerenciador_memoria.s
+	$(AS) -c gerenciador_memoria.s -o gerenciador_memoria.o
 
-chamador.o: chamador.c gerenciador_memoria.h
-	$(CC) $(CFLAGS) -c -o chamador.o chamador.c
+chamador.o: chamador.c gerenciador_memoria.o
+	$(CC) $(CFLAGS) -c chamador.c -o chamador.o 
 
 clean:
 	rm -f $(PROGRAM) gerenciador_memoria.o chamador.o
