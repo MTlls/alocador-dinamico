@@ -29,14 +29,19 @@ void *get_brk() {
  * Indica que o bloco está livre.
  * @param bloco o bloco de memória que vai ser liberado.
  */
-void libera_mem(void *bloco) {
+int libera_mem(void *bloco) {
 	void *cursor = bloco;
+
+	if (cursor < INICIO_HEAP || cursor > TOPO_HEAP)
+		return 0;
 
 	// seta para zero o metadado que diz se está livre ou não.
 	*((long int *)(cursor - 16)) = 0;
 
 	// procura nós livres.
 	fusiona_livres();
+
+	return 1;
 }
 
 /**
@@ -168,7 +173,7 @@ void *first_fit(long int *num_bytes) {
 
 			cursor += 8;
 			// tamanho do nó indicado.
-			*((long int *)(cursor)) = prox_bloco - cursor;
+			*((long int *)(cursor)) = prox_bloco - cursor - 8;
 
 		} else {
 			// caso não caiba, apenas mudamos o num_bytes para o valor da área livre.

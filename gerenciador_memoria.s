@@ -15,6 +15,7 @@
 .globl fusiona_livres
 .globl proximo_bloco
 .globl imprime_heap
+.globl INICIO_HEAP
 
 inicia_alocador:
     pushq %rbp
@@ -54,10 +55,21 @@ libera_mem:
     pushq %rbp
     movq %rsp, %rbp
     
+    cmpq INICIO_HEAP, %rdi          # caso cursor < INICIO_HEAP
+    jl bloco_fora_heap
+
+    cmpq TOPO_HEAP, %rdi            # caso cursor > TOPO_HEAP
+    jg bloco_fora_heap
+
     movq $0, -16(%rdi)              # indica que está livre, valor 0
 
-    call fusiona_livres             # fusiona nós livres.
+    // call fusiona_livres             # fusiona nós livres.
+    movq $1, %rax                   # feita a limpeza com sucesso
 
+    bloco_fora_heap:
+    movq $0, %rax                   # o bloco nao esta na heap.
+
+    fim_libera_mem:
     popq %rbp
     ret
 
@@ -151,10 +163,11 @@ aloca_mem:                           # %rdi = num_bytes
     pushq %rbp
     movq %rsp, %rbp
 
-    subq $16, %rsp                   # novo_bloco e bytes = &num_bytes
-    movq %rdi, -8(%rbp)              # método caller, empilha-se o endereço.
+    subq $16, %rsp                   # espaço para as variaveis novo_bloco e bytes
+    movq %rdi, -8(%rbp)              # empilha-se o tamanho do novo bloco.
     movq %rbp, %rdi
-    subq $8, %rdi                    # first_fit(bytes)
+    # é enviado como parametro o ponteiro para o tamanho do bloco.
+    subq $8, %rdi      
 
     call first_fit
     movq %rax, -16(%rbp)             # novo_bloco = first_fit(&num_bytes)
@@ -252,16 +265,17 @@ first_fit:
         cmpq $32, %r11
         jle else_ff
 
-        movq -8(%rbp), %rax         # vai para o começo do pŕoximo nó 
+        movq -8(%rbp), %rax         # pega o &num_bytes
         addq (%rax), %rsi           # cursor += *num_bytes
 
         movq $0, (%rsi)             # proximo nó está livre
 
         addq $8, %rsi               # indo para o tamanho do nó
 
-        # *((long int *)(cursor)) = prox_bloco - cursor
+        # *((long int *)(cursor)) = prox_bloco - cursor - 8
         movq -40(%rbp), %rax        # prox_bloco em rax
-        subq %rdi, %rax             # %rax = prox_bloco - cursor;
+        subq %rsi, %rax             # %rax = prox_bloco - cursor - 8
+        subq $8, %rax               
         movq %rax, (%rsi)           # setando o tamanho do bloco
 
         fim_loop_heap2:

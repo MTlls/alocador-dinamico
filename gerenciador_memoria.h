@@ -12,10 +12,10 @@ extern void inicia_alocador();
 extern void finaliza_alocador();
 
 /**
- * Indica que o bloco está livre.
+ * Função que libera o bloco de memória e o libera, limpa com sucesso e retorna 1, caso o bloco não esteja na heap, retorna 0.
  * @param bloco o bloco de memória que vai ser liberado.
 */
-extern void libera_mem(void* bloco);
+extern int libera_mem(void* bloco);
 
 /**
  * Procura um bloco livre com tamanho maior ou igual à num_bytes.
