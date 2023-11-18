@@ -4,7 +4,7 @@ extern void *TOPO_HEAP;
 /**
  * Executa syscall brk para obter o endereço do topo corrente da heap e o armazena em uma variável global, inicioHeap.
  */
-void inicia_alocador() {
+void iniciaAlocador() {
 	void *atualBrk = getBrk();
 
 	INICIO_HEAP = atualBrk;
@@ -14,14 +14,14 @@ void inicia_alocador() {
 /**
  * Executa syscall brk para restaurar o valor original da heap contido em topoInicialHeap.
  */
-void finaliza_alocador() {
+void finalizaAlocador() {
 	brk(INICIO_HEAP);
 }
 
 /**
  * Função que retorna o valor brk atual, facilita pois não precisamos assim nos preocupar com como vai ser salvo os registradores, devido ao registro de ativação.
  */
-void *get_brk() {
+void *getBrk() {
 	return brk(0);
 }
 
@@ -29,7 +29,7 @@ void *get_brk() {
  * Indica que o bloco está livre.
  * @param bloco o bloco de memória que vai ser liberado.
  */
-int libera_mem(void *bloco) {
+int liberaMem(void *bloco) {
 	void *cursor = bloco;
 
 	if (cursor < INICIO_HEAP || cursor > TOPO_HEAP)
@@ -39,7 +39,7 @@ int libera_mem(void *bloco) {
 	*((long int *)(cursor - 16)) = 0;
 
 	// procura nós livres.
-	fusiona_livres();
+	fusionaLivres();
 
 	return 1;
 }
@@ -48,7 +48,7 @@ int libera_mem(void *bloco) {
  * Função que calcula o começo dos metadados do próximo metadados e o retorna
  * @param bloco endereço de onde está o começo dos metadados
  */
-void *proximo_bloco(void *bloco) {
+void *proximoBloco(void *bloco) {
 	void *bloco_atual;
 	long int tamanho;
 
@@ -67,7 +67,7 @@ void *proximo_bloco(void *bloco) {
 /**
  * Função que procura todos os nós vizinhos, e se os dois vizinhos forem livres, fusiona os dois.
  */
-void fusiona_livres() {
+void fusionaLivres() {
 	void *cursor, *topo_heap_local;
 	void *prox_bloco;
 
@@ -75,7 +75,7 @@ void fusiona_livres() {
 	topo_heap_local = TOPO_HEAP;
 
 	// -16 pois precisamos dos metadados
-	prox_bloco = proximo_bloco(cursor + 16) - 16;
+	prox_bloco = proximoBloco(cursor + 16) - 16;
 
 	while(prox_bloco < topo_heap_local) {
 		// caso os dois estejam livres...
@@ -92,7 +92,7 @@ void fusiona_livres() {
 		}
 
 		cursor = prox_bloco;
-		prox_bloco = proximo_bloco(prox_bloco + 16) - 16;
+		prox_bloco = proximoBloco(prox_bloco + 16) - 16;
 	}
 
 	return;
@@ -104,14 +104,14 @@ void fusiona_livres() {
  * Se não encontrar, abre espaço para um novo bloco usando a syscall brk, indica que o bloco está ocupado e retorna o endereço inicial do bloco.
  * @param num_bytes o número de bytes que será alocado
  */
-void *aloca_mem(long int num_bytes) {
+void *alocaMem(long int num_bytes) {
 	void *novo_bloco;
 	long int *bytes;
 
 	bytes = &num_bytes;
 	// caso nao consiga achar algum que caiba, abre espaço.
-	if((novo_bloco = first_fit(bytes)) == 0)
-		novo_bloco = abre_espaco(*bytes);
+	if((novo_bloco = firstFit(bytes)) == 0)
+		novo_bloco = abreEspaco(*bytes);
 
 	// mexeremos nos metadados
 	novo_bloco -= 16;
@@ -132,7 +132,7 @@ void *aloca_mem(long int num_bytes) {
  * Função que procura algum nó dentro da heap que caiba num_bytes.
  * Retorna ou o endereço do novo bloco alocado ou 0 caso contrario
  */
-void *first_fit(long int *num_bytes) {
+void *firstFit(long int *num_bytes) {
 	void *bloco_atual, *prox_bloco, *cursor;
 	void *topo_heap_local = TOPO_HEAP;
 	long int tamanho;
@@ -145,7 +145,7 @@ void *first_fit(long int *num_bytes) {
 		// verifica se está ocupado e se cabe num_bytes em bloco_atual
 		if((*((long int *)(bloco_atual - 16))) == 1 ||
 		   (*num_bytes > *((long int *)(bloco_atual - 8)))) {
-			bloco_atual = proximo_bloco(bloco_atual);
+			bloco_atual = proximoBloco(bloco_atual);
 
 			// volta ao rótulo do loop
 			continue;
@@ -156,13 +156,13 @@ void *first_fit(long int *num_bytes) {
 		// Isso é o tamanho do espaço livre
 		tamanho = *((long int *)(bloco_atual - 8));
 
-		prox_bloco = proximo_bloco(bloco_atual) - 16;
+		prox_bloco = proximoBloco(bloco_atual) - 16;
 
 		// usameros esse ponteiro quando quisermos "navegar" na memória, primeiramente está apontando para o começo dos metadados do bloco.
 		cursor = bloco_atual;
 
-		// verifica se num_bytes + bloco_atual - proximo_bloco -16 <= 16
-		// ou melhor, se num_bytes + bloco_atual - proximo_bloco <= 32
+		// verifica se num_bytes + bloco_atual - proximoBloco -16 <= 16
+		// ou melhor, se num_bytes + bloco_atual - proximoBloco <= 32
 		// se sim, quer dizer que não cabe outro nó entre o bloco atual e o proximo.
 		if(prox_bloco - (*num_bytes + bloco_atual) > 32) {
 			// vai para o começo do pŕoximo nó
@@ -193,7 +193,7 @@ void *first_fit(long int *num_bytes) {
  * Retorna o começo dos metadados do novo nó pré alocado
  * @param num_bytes o número de bytes que será alocado
  */
-void *abre_espaco(long int num_bytes) {
+void *abreEspaco(long int num_bytes) {
 	long int antigo_topo = TOPO_HEAP;
 	long int novo_topo;
 
@@ -213,7 +213,7 @@ void *abre_espaco(long int num_bytes) {
  * O caractere usado para a impressão dos bytes do bloco de cada nó depende se o bloco estiver livre ou ocupado.
  * Se estiver livre, imprime o caractere -". Se estiver ocupado, imprime o caractere "+".
  */
-void imprime_heap();
+void imprimeHeap();
 
 /**
  * Função que imprime n caracteres c em sequencia

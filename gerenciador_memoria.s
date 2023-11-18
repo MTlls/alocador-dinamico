@@ -7,27 +7,27 @@
     DESOCUPADO: .string "-"
 .section .text
 
-.globl inicia_alocador
-.globl finaliza_alocador
-.globl libera_mem
-.globl aloca_mem
-.globl get_brk
-.globl fusiona_livres
-.globl proximo_bloco
-.globl imprime_heap
+.globl iniciaAlocador
+.globl finalizaAlocador
+.globl liberaMem
+.globl alocaMem
+.globl getBrk
+.globl fusionaLivres
+.globl proximoBloco
+.globl imprimeHeap
 .globl INICIO_HEAP
 
-inicia_alocador:
+iniciaAlocador:
     pushq %rbp
     movq %rsp, %rbp
 
-    call get_brk                    # pega o valor de brk e coloca em %rax
+    call getBrk                    # pega o valor de brk e coloca em %rax
     movq %rax, INICIO_HEAP          # guarda o valor em INICIO_HEAP
     movq %rax, TOPO_HEAP            # guarda o valor em TOPO_HEAP
     popq %rbp
     ret
 
-finaliza_alocador:
+finalizaAlocador:
     pushq %rbp                      
     movq %rsp, %rbp
 
@@ -39,7 +39,7 @@ finaliza_alocador:
     popq %rbp
     ret
 
-get_brk:
+getBrk:
     pushq %rbp
     movq %rsp, %rbp
 
@@ -51,7 +51,7 @@ get_brk:
     popq %rbp
     ret
 
-libera_mem:
+liberaMem:
     pushq %rbp
     movq %rsp, %rbp
     
@@ -63,17 +63,17 @@ libera_mem:
 
     movq $0, -16(%rdi)              # indica que está livre, valor 0
 
-    // call fusiona_livres             # fusiona nós livres.
+    // call fusionaLivres             # fusiona nós livres.
     movq $1, %rax                   # feita a limpeza com sucesso
 
     bloco_fora_heap:
     movq $0, %rax                   # o bloco nao esta na heap.
 
-    fim_libera_mem:
+    fim_liberaMem:
     popq %rbp
     ret
 
-proximo_bloco:
+proximoBloco:
     pushq %rbp
     movq %rsp, %rbp
      
@@ -84,7 +84,7 @@ proximo_bloco:
     popq %rbp
     ret
 
-fusiona_livres:
+fusionaLivres:
     pushq %rbp
     movq %rsp, %rbp
 
@@ -100,10 +100,10 @@ fusiona_livres:
     movq %rax,  -16(%rbp)
 
     movq -8(%rbp), %rdi             # adiciona o cursor ao argumento
-    addq $16, %rdi                  # proximo_bloco(cursor + 16)
-    call proximo_bloco
+    addq $16, %rdi                  # proximoBloco(cursor + 16)
+    call proximoBloco
 
-    subq $16, %rax                  # proximo_bloco(cursor + 16) -16
+    subq $16, %rax                  # proximoBloco(cursor + 16) -16
     movq %rax, -24(%rbp)            # para as variaveis locais.
 
     movq -8(%rbp), %rsi             # cursor em %rsi
@@ -144,10 +144,10 @@ fusiona_livres:
         movq -24(%rbp), %rax
         movq %rax, -8(%rbp)               # cursor = prox_bloco
 
-        # prox_bloco = proximo_bloco(prox_bloco + 16) - 16;
+        # prox_bloco = proximoBloco(prox_bloco + 16) - 16;
         addq $16, %rax
         movq %rax, %rdi
-        call proximo_bloco
+        call proximoBloco
         subq $16, %rax
 
         movq %rax, -24(%rbp)          # voltando para as variaveis locais
@@ -159,7 +159,7 @@ fusiona_livres:
         ret
 
 
-aloca_mem:                           # %rdi = num_bytes
+alocaMem:                           # %rdi = num_bytes
     pushq %rbp
     movq %rsp, %rbp
 
@@ -169,17 +169,17 @@ aloca_mem:                           # %rdi = num_bytes
     # é enviado como parametro o ponteiro para o tamanho do bloco.
     subq $8, %rdi      
 
-    call first_fit
-    movq %rax, -16(%rbp)             # novo_bloco = first_fit(&num_bytes)
+    call firstFit
+    movq %rax, -16(%rbp)             # novo_bloco = firstFit(&num_bytes)
 
-    cmpq $0, %rax                   # verifica se first_fit(&num_bytes)) == 0
-    jne fim_if_aloca_mem
+    cmpq $0, %rax                   # verifica se firstFit(&num_bytes)) == 0
+    jne fim_if_alocaMem
 
     movq -8(%rbp), %rdi
-    call abre_espaco
-    movq %rax, -16(%rbp)             # novo_bloco = abre_espaco(num_bytes)
+    call abreEspaco
+    movq %rax, -16(%rbp)             # novo_bloco = abreEspaco(num_bytes)
 
-    fim_if_aloca_mem:
+    fim_if_alocaMem:
     #tratamento do valor de num_bytes, que pode ter mudado
     movq -8(%rbp), %rdi 
     movq %rdi, %rcx
@@ -195,7 +195,7 @@ aloca_mem:                           # %rdi = num_bytes
     popq %rbp
     ret
 
-first_fit:
+firstFit:
     pushq %rbp
     movq %rsp, %rbp 
     
@@ -250,9 +250,9 @@ first_fit:
         movq (%rdx), %r10           # %r10 = *((long int *)(bloco_atual - 8));
         movq %r10, -32(%rbp)        # tamanho = %r10 
 
-        # prox_bloco = proximo_bloco(bloco_atual) - 16;
+        # prox_bloco = proximoBloco(bloco_atual) - 16;
         movq %rsi, %rdi             # param1: bloco_atual
-        call proximo_bloco
+        call proximoBloco
         subq $16, %rax              
         movq %rax, -40(%rbp)        # prox_bloco = %rax
 
@@ -291,7 +291,7 @@ first_fit:
             jmp fim_loop_heap2      # vai para o fim do laço
     proximo:
         movq %rsi, %rdi             # prepara o argumento
-        call proximo_bloco
+        call proximoBloco
 
         movq %rax, -16(%rbp)        # atualiza o valor de bloco_atual
         jmp loop_ate_fim_heap2      # continue;
@@ -303,7 +303,7 @@ first_fit:
         popq %rbp
         ret
 
-abre_espaco:
+abreEspaco:
     pushq %rbp
     movq %rsp, %rbp 
     
@@ -318,7 +318,7 @@ abre_espaco:
     movq $12, %rax                  # chama brk.
     syscall
 
-    call get_brk
+    call getBrk
     movq %rax, TOPO_HEAP
 
     addq $16, -8(%rbp)              # return antigo_topo + 16
@@ -328,7 +328,7 @@ abre_espaco:
     popq %rbp
     ret
 
-imprime_heap:
+imprimeHeap:
     pushq %rbp
     movq %rsp, %rbp
     subq $16, %rsp     
@@ -375,7 +375,7 @@ imprime_heap:
     fim_loop:
     addq $8, %r8
     movq %r8, %rdi
-    call proximo_bloco
+    call proximoBloco
     movq %rax,%r8                      # %r8 = prox bloco (deveria ser flag de ocupacao)
     jmp heap_loop
 

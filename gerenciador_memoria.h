@@ -4,18 +4,18 @@
 /**
  * Executa syscall brk para obter o endereço do topo corrente da heap e o armazena em uma variável global, inicioHeap.
 */
-extern void inicia_alocador();
+extern void iniciaAlocador();
 
 /**
  * Executa syscall brk para restaurar o valor original da heap contido em topoInicialHeap.
 */
-extern void finaliza_alocador();
+extern void finalizaAlocador();
 
 /**
  * Função que libera o bloco de memória e o libera, limpa com sucesso e retorna 1, caso o bloco não esteja na heap, retorna 0.
  * @param bloco o bloco de memória que vai ser liberado.
 */
-extern int libera_mem(void* bloco);
+extern int liberaMem(void* bloco);
 
 /**
  * Procura um bloco livre com tamanho maior ou igual à num_bytes.
@@ -23,23 +23,23 @@ extern int libera_mem(void* bloco);
  * Se não encontrar, abre espaço para um novo bloco usando a syscall brk, indica que o bloco está ocupado e retorna o endereço inicial do bloco.
  * @param num_bytes o número de bytes que será alocado
 */
-extern void *aloca_mem(long int num_bytes);
+extern void *alocaMem(long int num_bytes);
 
 /**
  * Função que retorna o valor brk atual
 */
-extern void *get_brk();
+extern void *getBrk();
 
 /**
  * Função que procura todos os nós vizinhos, e se os dois vizinhos forem livres, fusiona os dois.
 */
-extern void *fusiona_livres();
+extern void *fusionaLivres();
 
 /**
  * Função que calcula o começo dos metadados do próximo metadados e o retorna
  * @param bloco endereço de onde está o começo dos metadados
 */
-extern void *proximo_bloco(void *bloco);
+extern void *proximoBloco(void *bloco);
 
 /**
  * Função responsável por imprimir a heap.
@@ -47,7 +47,7 @@ extern void *proximo_bloco(void *bloco);
  * O caractere usado para a impressão dos bytes do bloco de cada nó depende se o bloco estiver livre ou ocupado. 
  * Se estiver livre, imprime o caractere -". Se estiver ocupado, imprime o caractere "+".
 */
-extern void imprime_heap();
+extern void imprimeHeap();
 
 /**
  * Função que imprime n caracteres c em sequencia
