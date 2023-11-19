@@ -15,7 +15,7 @@
 .globl getBrk
 .globl fusionaLivres
 .globl proximoBloco
-.globl imprimeHeap
+.globl imprimeMapa
 .globl INICIO_HEAP
 
 iniciaAlocador:
@@ -329,7 +329,7 @@ abreEspaco:
     popq %rbp
     ret
 
-imprimeHeap:
+imprimeMapa:
     pushq %rbp
     movq %rsp, %rbp
     subq $16, %rsp     

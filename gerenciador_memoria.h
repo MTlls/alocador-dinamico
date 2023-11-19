@@ -47,7 +47,7 @@ extern void *proximoBloco(void *bloco);
  * O caractere usado para a impressão dos bytes do bloco de cada nó depende se o bloco estiver livre ou ocupado. 
  * Se estiver livre, imprime o caractere -". Se estiver ocupado, imprime o caractere "+".
 */
-extern void imprimeHeap();
+extern void imprimeMapa();
 
 /**
  * Função que imprime n caracteres c em sequencia

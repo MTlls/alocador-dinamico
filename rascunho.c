@@ -213,7 +213,7 @@ void *abreEspaco(long int num_bytes) {
  * O caractere usado para a impressão dos bytes do bloco de cada nó depende se o bloco estiver livre ou ocupado.
  * Se estiver livre, imprime o caractere -". Se estiver ocupado, imprime o caractere "+".
  */
-void imprimeHeap();
+void imprimeMapa();
 
 /**
  * Função que imprime n caracteres c em sequencia
