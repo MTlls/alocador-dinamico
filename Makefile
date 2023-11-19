@@ -1,6 +1,6 @@
 CC = gcc
 AS = as -g
-CFLAGS = -Wall -std=c99 -g -D_DEFAULT_SOURCE
+CFLAGS = -Wall -std=c99 -g
 LDFLAGS = -no-pie
 PROGRAM = chamador
 
