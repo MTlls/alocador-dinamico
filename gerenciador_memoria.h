@@ -49,10 +49,4 @@ extern void *proximoBloco(void *bloco);
 */
 extern void imprimeMapa();
 
-/**
- * Função que imprime n caracteres c em sequencia
- * @param c caractere que será imprimido
- * @param n vezes que será imprimido
-*/
-extern void imprime_sequencia(char c, int n);
 #endif
