@@ -12,31 +12,27 @@ int main() {
 
     ptr1 = alocaMem(100 * 1);
     imprimeHeap();
-    printf("\n");
     printf("tam = %d, ptr = %p\n", 100, ptr1);
 
     printf("valor da brk: %p\n", (void*)(getBrk()));
     ptr2 = alocaMem(100 * 2);
     imprimeHeap();
-    printf("\n");
     printf("tam = %d, ptr = %p\n", 200, ptr2);
 
     printf("valor da brk: %p\n", (void*)(getBrk()));
     ptr3 = alocaMem(100 * 3);
     imprimeHeap();
-    printf("\n");
     printf("tam = %d, ptr = %p\n", 300, ptr3);
 
     liberaMem(ptr1);
     imprimeHeap();
-    printf("\n");
+
     liberaMem(ptr2);
     imprimeHeap();
-    printf("\n");
+
     ptr1 = alocaMem(100);
     printf("aloquei 100 de novo\n");
     imprimeHeap();
-    printf("\n");
     printf("valor da brk: %p\n", (void*)(getBrk()));
  
     finalizaAlocador();

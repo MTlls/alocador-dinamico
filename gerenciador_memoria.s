@@ -5,6 +5,7 @@
     META: .string "################"      # string de metadados
     OCUPADO: .string "+"
     DESOCUPADO: .string "-"
+    NEWLINE: .string "\n"
 .section .text
 
 .globl iniciaAlocador
@@ -381,6 +382,11 @@ imprimeHeap:
     jmp heap_loop
 
     fim_heap:
+    movq $1, %rax                   # 1 = serviço write
+    movq $1, %rdi                   # 1 = stdout
+    movq $1, %rdx                   # 1 = tamanho do buffer
+    movq $NEWLINE, %rsi             # \n to buffer
+    syscall
     addq $16, %rsp                  # fecha stack
     popq %rbp
     ret

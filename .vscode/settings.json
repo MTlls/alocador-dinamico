@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.s": "gas",
+        "*.asm": "gas",
+        "gerenciador_memoria.h": "c"
+    }
+}
