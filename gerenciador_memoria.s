@@ -63,7 +63,7 @@ liberaMem:
 
     movq $0, -16(%rdi)              # indica que está livre, valor 0
 
-    // call fusionaLivres             # fusiona nós livres.
+    call fusionaLivres             # fusiona nós livres.
     movq $1, %rax                   # feita a limpeza com sucesso
 
     bloco_fora_heap:
@@ -376,7 +376,8 @@ imprimeHeap:
     addq $8, %r8
     movq %r8, %rdi
     call proximoBloco
-    movq %rax,%r8                      # %r8 = prox bloco (deveria ser flag de ocupacao)
+    subq $16, %rax                  # %rax contem o endereco da prox area de dados
+    movq %rax, %r8                  # atualiza o cursor
     jmp heap_loop
 
     fim_heap:
