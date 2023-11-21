@@ -137,9 +137,7 @@ fusionaLivres:
         # prox_bloco = cursor - 8;
         movq %rsi, %rcx
         subq $8, %rcx
-        movq %rcx, %rax
-
-        jmp fim_loop_heap1
+        movq %rcx, -24(%rbp)
 
     fim_loop_heap1:
         movq -24(%rbp), %rax
@@ -259,12 +257,12 @@ firstFit:
 
         movq %rsi, -48(%rbp)        # cursor = bloco_atual
 
-        # prox_bloco - (*num_bytes + bloco_atual ) > 32
+        # prox_bloco - (*num_bytes + bloco_atual ) >= 16
         movq %rax, %r11             # r11 = prox_bloco
         subq %r8, %r11              # r11 -= num_bytes
         subq %rsi, %r11             # r11 -= bloco_atual
-        cmpq $32, %r11
-        jle else_ff
+        cmpq $16, %r11
+        jl else_ff
 
         movq -8(%rbp), %rax         # pega o &num_bytes
         addq (%rax), %rsi           # cursor += *num_bytes

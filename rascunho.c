@@ -161,8 +161,7 @@ void *firstFit(long int *num_bytes) {
 		// usameros esse ponteiro quando quisermos "navegar" na memória, primeiramente está apontando para o começo dos metadados do bloco.
 		cursor = bloco_atual;
 
-		// verifica se num_bytes + bloco_atual - proximoBloco -16 <= 16
-		// ou melhor, se num_bytes + bloco_atual - proximoBloco <= 32
+		// verifica se num_bytes + bloco_atual - proximoBloco >= 16
 		// se sim, quer dizer que não cabe outro nó entre o bloco atual e o proximo.
 		if(prox_bloco - (*num_bytes + bloco_atual) > 32) {
 			// vai para o começo do pŕoximo nó
