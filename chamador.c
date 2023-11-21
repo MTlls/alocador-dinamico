@@ -5,6 +5,7 @@ int main (long int argc, char** argv) {
     void *a,*b,*c,*d,*e;
 
     iniciaAlocador(); 
+    printf("iniciou\n");
     imprimeMapa();
     // 0) estado inicial
 
@@ -52,7 +53,7 @@ int main (long int argc, char** argv) {
     
     fprintf(stdout, "E LIBERADO, 508 liberados, um bloco.\n");
     liberaMem(e);
-      imprimeMapa();
+    imprimeMapa();
     // 4) volta ao estado inicial
     finalizaAlocador();
 }

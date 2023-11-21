@@ -49,4 +49,8 @@ extern void *proximoBloco(void *bloco);
 */
 extern void imprimeMapa();
 
+/**
+ * Função que realiza o worst fit.
+*/
+extern void worstFit();
 #endif

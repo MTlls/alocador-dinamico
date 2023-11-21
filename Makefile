@@ -2,7 +2,7 @@ CC = gcc
 AS = as -g
 CFLAGS = -std=c99 -g
 LDFLAGS = -no-pie
-PROGRAM = chamador
+PROGRAM = avalia
 
 all: $(PROGRAM)
 

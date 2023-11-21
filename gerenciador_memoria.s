@@ -163,19 +163,27 @@ alocaMem:                           # %rdi = num_bytes
     movq %rsp, %rbp
 
     subq $16, %rsp                   # espaço para as variaveis novo_bloco e bytes
+    movq INICIO_HEAP, %rsi
+    movq TOPO_HEAP, %r8
+    cmpq %rsi, %r8                 
+    je abrindo
+
     movq %rdi, -8(%rbp)              # empilha-se o tamanho do novo bloco.
     movq %rbp, %rdi
     # é enviado como parametro o ponteiro para o tamanho do bloco.
     subq $8, %rdi      
 
-    call firstFit
+    call worstFit
     movq %rax, -16(%rbp)             # novo_bloco = firstFit(&num_bytes)
 
     cmpq $0, %rax                   # verifica se firstFit(&num_bytes)) == 0
     jne fim_if_alocaMem
 
     movq -8(%rbp), %rdi
+
+abrindo: 
     call abreEspaco
+
     movq %rax, -16(%rbp)             # novo_bloco = abreEspaco(num_bytes)
 
     fim_if_alocaMem:
@@ -389,3 +397,113 @@ imprimeMapa:
     popq %rbp
     ret
     
+worstFit:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    # 5 variaveis locais
+    # bloco_atual = -8(%rbp)
+    # tamanho_max = -16(%rbp)
+    # cursor = -24(%rbp)
+    # topo_heap_local = -32(%rbp)
+    # num_bytes -40(%rbp)
+    addq $40, %rsp
+
+    # bloco_atual = INICIO_HEAP + 8;
+    movq INICIO_HEAP, %rax
+    addq $8, %rax
+    movq %rax, -8(%rbp)
+
+    # tamanho_max = (bloco_atual);
+    movq -8(%rbp), %rax
+    movq %rax,  -16(%rbp)
+
+	# topo_heap_local = TOPO_HEAP;
+    movq TOPO_HEAP, %rax
+    movq %rax, -32(%rbp)
+
+    movq %rdi, -40(%rbp)
+
+    loop_ate_fim_heap3:
+        movq -8(%rbp), %rdi
+        movq %rdi, %rsi
+        subq $8, %rdi               # rdi = bloco_atual - 8
+
+        cmpq %rdi, -32(%rbp)        # bloco_atual - 8 < topo_heap_local
+        jg apos_loop_heap3
+
+        # bloco_atual = proximoBloco(bloco_atual + 8)
+        addq $16, %rdi               # rdi = bloco_atual + 8
+        call proximoBloco
+
+        # bloco_atual -= 16, pois queremos a flag de ocupacao
+        subq $16, %rax
+
+        cmpq $1, %rax               # if(bloco_atual - 8 == 1) continue
+        je loop_ate_fim_heap3 
+        
+        # *tamanho_max = %rcx
+        movq -16(%rbp), %rcx
+        movq (%rcx), %rcx
+
+        cmpq %rcx, (%rax)           # if (*tamanho_max < *((long int *)(bloco_atual - 8))) {
+        jle loop_ate_fim_heap3
+
+        movq -8(%rbp), %r11
+        movq %r11,  16(%rbp)     # tamanho_max = bloco_atual;
+        jmp loop_ate_fim_heap3
+    
+    apos_loop_heap3:
+        # *tamanho_max e *num_bytes
+        movq -16(%rbp), %rax
+        movq (%rax), %rax
+        movq -40(%rbp), %rcx
+        movq (%rcx), %rcx
+
+        # caso (num_bytes < tamanho_max), retorna 0 (nao conseguiu alocar)
+        cmpq  %rax, %rcx
+        jl nao_encontrado_wf
+        
+        # cursor = -24(%rbp)
+        # cursor = tamanho_max + 8
+        movq -16(%rbp), %r8
+        movq %r8,  -24(%rbp) 
+        addq $8, -24(%rbp)
+
+        # verifica se o tam_maior_bloco - num_bytes >= 16
+        movq %rax, %r8
+        subq %rcx, %r8
+        cmpq $16, %r8
+        jl nao_fragmenta_wf
+
+        # A PARTIR DAQUI OCORRE A FRAGMENTACAO
+
+        movq -24(%rbp), %r10              # vamos usar o cursor em %r10
+        addq %rax, %r10
+
+        # proximo nó está livre.
+        movq $0, (%r10)
+        addq $8, %r10
+
+        subq $16, %r8                     # tam_maior_bloco - num_bytes - 16
+        movq %r8, (%r10) 
+        
+        jmp encontrado_wf
+
+    # caso não caiba, apenas mudamos o num_bytes para o valor da área livre.
+    nao_fragmenta_wf:
+        # *num_bytes = *tamanho_max;
+        movq -16(%rbp), %rcx
+        movq %rax, (%rcx)
+
+    encontrado_wf:
+        movq -8(%rbp), %rax
+        jmp fim_wf
+
+    nao_encontrado_wf:
+        movq $0, %rax
+
+    fim_wf:
+    addq $40, %rsp
+    popq %rbp
+    ret
