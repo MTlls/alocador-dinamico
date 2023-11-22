@@ -5,22 +5,22 @@ int main (long int argc, char** argv) {
     void *a,*b,*c,*d,*e;
 
     iniciaAlocador(); 
-    printf("iniciou\n");
     imprimeMapa();
     // 0) estado inicial
 
+    fprintf(stdout, "Espero ver quatro segmentos ocupados\n");
     a=(void *) alocaMem(100);
     b=(void *) alocaMem(130);
     c=(void *) alocaMem(120);
     d=(void *) alocaMem(110);
     // 1) Espero ver quatro segmentos ocupados
+    imprimeMapa(); 
     liberaMem(b);
     liberaMem(d);
-    fprintf(stdout, "Espero ver quatro segmentos ocupados\n");
+    fprintf(stdout, "Espero ver quatro segmentos alternando entre ocupados e livres\n");
     imprimeMapa(); 
     // 2) Espero ver quatro segmentos alternando
     //    ocupados e livres
-    fprintf(stdout, "Espero ver quatro segmentos alternando entre ocupados e livres\n");
     
     b=(void *) alocaMem(50);
     fprintf(stdout, "segundo bloco tem 50 e terceiro bloco deve ter 64\n");
@@ -39,7 +39,7 @@ int main (long int argc, char** argv) {
     liberaMem(c);
     imprimeMapa(); 
     
-    fprintf(stdout, "A LIBERADO, primeiro bloco com 166 livres.\n");
+    fprintf(stdout, "A LIBERADO, primeiro bloco com 100 livres.\n");
     liberaMem(a);
     imprimeMapa();
     

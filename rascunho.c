@@ -300,3 +300,30 @@ void worstFit(long int *num_bytes) {
     // nao encontrou
     return 0;
 }
+
+void imprimeMapa() {
+    charcursor = (char )INICIO_HEAP;
+    chartopo = (char )TOPO_HEAP;
+
+    while (cursor != topo) {
+        // imprime_gerencial
+        write(1, META, 16);  // 1 = stdout
+        putchar('\n');
+
+        char flag = (cursor == 1) ? OCUPADO : DESOCUPADO;
+        char enderecoFlag = &flag;
+
+        cursor += 8;  // Pula para o tamanho do bloco
+        size_t tamanhoBloco =((size_t *)cursor);
+
+        for (size_t contador = 0; contador < tamanhoBloco; contador++) {
+            // Imprime os dados do bloco
+            write(1, enderecoFlag, 1);  // 1 = stdout
+        }
+
+        cursor = proximoBloco(cursor);
+    }
+
+    // Imprime nova linha ao final
+    write(1, NEWLINE, 1);  // 1 = stdout
+}
